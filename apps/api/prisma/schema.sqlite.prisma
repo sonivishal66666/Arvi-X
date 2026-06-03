@@ -1,0 +1,555 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?
+  password        String?
+  name            String
+  role            String    @default("USER")
+  isVerified      Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  image           String?
+  googleId        String?   @unique
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  profile         Profile?
+  vendor          Vendor?
+  bookings        Booking[]
+  reviews         Review[]
+  notifications   Notification[]
+  wallet          Wallet?
+  payments        Payment[]
+  chatMessages    ChatMessage[]
+  aiSessions      AiAssistantSession[]
+  seatLocks       SeatLock[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Profile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth DateTime?
+  gender      String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  preferences String?   @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("profiles")
+}
+
+model Vendor {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName    String
+  businessEmail   String?
+  businessPhone   String?
+  businessAddress String?
+  gstNumber       String?
+  panNumber       String?
+  isVerified      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  commissionRate  Float    @default(5.0)
+  totalRevenue    Float    @default(0)
+  totalPayout     Float    @default(0)
+  onboardingStep  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  services        Service[]
+  payouts         VendorPayout[]
+
+  @@map("vendors")
+}
+
+model Service {
+  id              String          @id @default(cuid())
+  vendorId        String
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  category        String
+  title           String
+  description     String?
+  images          String          @default("[]")
+  amenities       String          @default("[]")
+  policies        String?         @default("{}")
+  isActive        Boolean         @default(true)
+  isFeatured      Boolean         @default(false)
+  rating          Float           @default(0)
+  reviewCount     Int             @default(0)
+  basePrice       Float
+  discountPercent Float           @default(0)
+  taxPercent      Float           @default(18)
+  cancellationPolicy String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  bus             BusService?
+  train           TrainService?
+  flight          FlightService?
+  hotel           HotelService?
+  event           EventService?
+  schedules       Schedule[]
+  reviews         Review[]
+  bookings        Booking[]
+  coupons         CouponService[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([vendorId])
+  @@map("services")
+}
+
+model BusService {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  busNumber       String
+  busType         String
+  totalSeats      Int
+  deckCount       Int      @default(1)
+  amenities       String   @default("[]")
+  boardingPoints  String   @default("[]")
+  droppingPoints  String   @default("[]")
+
+  @@map("bus_services")
+}
+
+model TrainService {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  trainNumber     String
+  trainType       String
+  totalSeats      Int
+  classes         String   @default("[]")
+  pantryAvailable Boolean  @default(false)
+  wifiAvailable   Boolean  @default(false)
+
+  @@map("train_services")
+}
+
+model FlightService {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  flightNumber    String
+  airline         String
+  aircraftType    String
+  totalSeats      Int
+  classes         String   @default("[]")
+  baggageAllowance String?
+  mealOptions     String   @default("[]")
+
+  @@map("flight_services")
+}
+
+model HotelService {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  hotelChain      String?
+  starRating      Int      @default(3)
+  propertyType    String
+  checkInTime     String   @default("14:00")
+  checkOutTime    String   @default("11:00")
+  latitude        Float?
+  longitude       Float?
+  totalRooms      Int
+  roomTypes       String   @default("[]")
+
+  @@map("hotel_services")
+}
+
+model EventService {
+  id              String     @id @default(cuid())
+  serviceId       String     @unique
+  service         Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  eventType       String
+  venue           String
+  venueAddress    String?
+  latitude        Float?
+  longitude       Float?
+  startDate       DateTime
+  endDate         DateTime
+  totalTickets    Int
+  ticketTypes     String     @default("[]")
+  organizer       String?
+  ageRestriction  Int?
+
+  @@map("event_services")
+}
+
+model Route {
+  id          String   @id @default(cuid())
+  origin      String
+  destination String
+  distance    Float?
+  duration    Int?
+  stops       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schedules   Schedule[]
+
+  @@index([origin, destination])
+  @@map("routes")
+}
+
+model Schedule {
+  id              String      @id @default(cuid())
+  serviceId       String
+  service         Service     @relation(fields: [serviceId], references: [id])
+  routeId         String?
+  route           Route?      @relation(fields: [routeId], references: [id])
+  departureTime   DateTime
+  arrivalTime     DateTime
+  duration        Int
+  availableSeats  Int
+  dynamicPrice    Float?
+  basePrice       Float
+  isActive        Boolean     @default(true)
+  recurring       String?
+  recurringDays   String?     @default("[]")
+  blackoutDates   String?     @default("[]")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  bookings        Booking[]
+  seats           Seat[]
+
+  @@index([serviceId, departureTime])
+  @@index([departureTime])
+  @@map("schedules")
+}
+
+model Seat {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  seatNumber  String
+  deck        Int      @default(1)
+  row         Int?
+  column      String?
+  class       String?
+  tier        String?
+  status      String   @default("AVAILABLE")
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  locks       SeatLock[]
+
+  @@unique([scheduleId, seatNumber])
+  @@index([scheduleId, status])
+  @@map("seats")
+}
+
+model SeatLock {
+  id        String   @id @default(cuid())
+  seatId    String
+  seat      Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  sessionId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([seatId, expiresAt])
+  @@index([sessionId])
+  @@map("seat_locks")
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  bookingRef      String   @unique
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id])
+  scheduleId      String?
+  schedule        Schedule? @relation(fields: [scheduleId], references: [id])
+  status          String   @default("PENDING")
+  totalAmount     Float
+  discountAmount  Float    @default(0)
+  taxAmount       Float    @default(0)
+  finalAmount     Float
+  currency        String   @default("INR")
+  passengers      String   @default("[]")
+  contactEmail    String?
+  contactPhone    String?
+  specialRequests String?
+  checkIn         DateTime?
+  checkOut        DateTime?
+  rooms           String?
+  qrCode          String?
+  cancellationReason String?
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments        Payment[]
+  reviews         Review[]
+
+  @@index([bookingRef])
+  @@index([userId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  bookingId       String
+  booking         Booking  @relation(fields: [bookingId], references: [id])
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  amount          Float
+  currency        String   @default("INR")
+  status          String   @default("PENDING")
+  method          String   @default("CASHFREE")
+  cashfreeOrderId String?  @unique
+  cashfreePaymentId String? @unique
+  cashfreeSignature String?
+  gatewayResponse String?
+  refundAmount    Float    @default(0)
+  refundId        String?
+  refundReason    String?
+  metadata        String?  @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([cashfreeOrderId])
+  @@index([userId])
+  @@map("payments")
+}
+
+model Wallet {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Float     @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type        String
+  amount      Float
+  balanceBefore Float
+  balanceAfter  Float
+  description String
+  referenceId String?
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+
+  @@index([walletId])
+  @@map("wallet_transactions")
+}
+
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  description     String?
+  discountType    String
+  discountValue   Float
+  minOrderAmount  Float     @default(0)
+  maxDiscount     Float?
+  maxUses         Int       @default(100)
+  usedCount       Int       @default(0)
+  perUserLimit    Int       @default(1)
+  category        String?
+  isActive        Boolean   @default(true)
+  validFrom       DateTime
+  validUntil      DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  services        CouponService[]
+  @@index([code])
+  @@map("coupons")
+}
+
+model CouponService {
+  couponId   String
+  coupon     Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  serviceId  String
+  service    Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([couponId, serviceId])
+  @@map("coupon_services")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id])
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  rating    Int
+  title     String?
+  comment   String?
+  images    String   @default("[]")
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, serviceId])
+  @@map("reviews")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   String   @default("IN_APP")
+  title     String
+  body      String
+  data      String?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AiAssistantSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  model     String   @default("GPT_4")
+  context   String?  @default("[]")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages  ChatMessage[]
+
+  @@index([userId])
+  @@map("ai_assistant_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   AiAssistantSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  role      String
+  content   String
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+model VendorPayout {
+  id              String   @id @default(cuid())
+  vendorId        String
+  vendor          Vendor   @relation(fields: [vendorId], references: [id])
+  amount          Float
+  commission      Float
+  netAmount       Float
+  status          String
+  paymentMethod   String?
+  transactionRef  String?
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([vendorId, status])
+  @@map("vendor_payouts")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  event     String
+  category  String?
+  label     String?
+  value     Float?
+  userId    String?
+  sessionId String?
+  metadata  String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([category])
+  @@index([userId])
+  @@map("analytics_events")
+}
+
+model ApiLog {
+  id         String   @id @default(cuid())
+  method     String
+  path       String
+  statusCode Int
+  userId     String?
+  ip         String?
+  userAgent  String?
+  duration   Int?
+  body       String?
+  response   String?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([statusCode])
+  @@map("api_logs")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  refreshToken String?  @unique
+  sessionId    String
+  deviceInfo   String?
+  ipAddress    String?
+  isActive     Boolean  @default(true)
+  lastActivity DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
