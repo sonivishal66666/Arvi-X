@@ -67,13 +67,14 @@ export function Header() {
       >
         <div className="flex items-center justify-between h-full">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden group-hover:scale-105 transition-transform duration-300">
-              <img src="/logo.png" alt="Arvis Logo" className="w-full h-full object-cover" />
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-indigo-500/20">
+              <img src="/favicon.png" alt="Arvis X" className="w-full h-full object-contain" />
             </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              Arvis <span className="text-white/60">X</span>
+            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+              Arvis <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">X</span>
             </span>
           </Link>
+
 
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {

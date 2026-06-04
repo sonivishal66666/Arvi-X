@@ -42,7 +42,13 @@ const httpServer = createServer(app);
 
 const io = new SocketServer(httpServer, {
   cors: {
-    origin: config.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      if (/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) return callback(null, true);
+      if (origin === config.FRONTEND_URL) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   },
   pingTimeout: 60000,
@@ -57,7 +63,16 @@ app.use(helmet({
 }));
 app.use(compression());
 app.use(cors({
-  origin: config.FRONTEND_URL,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow any localhost port (handles Next.js auto port-switching: 3000, 3001, etc.)
+    if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+    if (/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) return callback(null, true);
+    // Allow the configured FRONTEND_URL
+    if (origin === config.FRONTEND_URL) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
