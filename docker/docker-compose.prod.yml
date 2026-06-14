@@ -54,7 +54,7 @@ services:
 
   api:
     build:
-      context: ../apps/api
+      context: ../backend
       dockerfile: Dockerfile
       target: production
     container_name: arvis-api
@@ -86,7 +86,7 @@ services:
 
   web:
     build:
-      context: ../apps/web
+      context: ../frontend
       dockerfile: Dockerfile
       target: production
     container_name: arvis-web

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="apps/web/public/logo.png" alt="Arvis X Logo" width="280" />
+<img src="frontend/public/logo.png" alt="Arvis X Logo" width="280" />
 
 ### ✦ Next-Generation AI-Powered Travel & Booking Platform ✦
 
@@ -197,69 +197,66 @@
 ```
 arvis-x/                              ◆ Turborepo Monorepo
 │
-├── apps/
+├── frontend/                         ◆ Next.js 15 · App Router · 30+ routes
+│   ├── app/
+│   │   ├── (auth)/               ─ Login · Register · Verify OTP
+│   │   ├── (dashboard)/
+│   │   │   ├── admin/            ─ Ultra-Premium Admin Command Center
+│   │   │   ├── user/             ─ User Profile · Wallet · Bookings
+│   │   │   └── vendor/           ─ Vendor Service Controller
+│   │   │
+│   │   ├── ── BOOKING FLOWS ──────────────────────────────────────
+│   │   ├── booking/              ─ Checkout · Seat Lock · Coupons
+│   │   ├── bookings/             ─ History · Cancellation · Refunds
+│   │   ├── payments/             ─ Cashfree Redirects · Verification
+│   │   ├── tickets/              ─ QR E-Tickets · PDF Receipt
+│   │   ├── wallet/               ─ Balance · Ledger · Top-up
+│   │   │
+│   │   ├── ── LISTING PAGES ──────────────────────────────────────
+│   │   ├── buses/                ─ Bus Listings · Tabbed Search
+│   │   ├── trains/               ─ Train Listings · Tabbed Search
+│   │   ├── flights/              ─ Flight Listings · Tabbed Search
+│   │   ├── hotels/               ─ Hotel Listings · Tabbed Search
+│   │   ├── events/               ─ Event Listings · Tabbed Search
+│   │   ├── services/             ─ Dynamic Details · Seat Mapping
+│   │   ├── search/               ─ Advanced Search & Filters
+│   │   ├── wishlist/             ─ Saved Services Collection
+│   │   │
+│   │   ├── ── INFORMATIONAL HUB ──────────────────────────────────
+│   │   ├── about/                ─ Company Story · Vishal Soni
+│   │   ├── careers/              ─ Open Positions Board
+│   │   ├── press/                ─ News & Media Kit
+│   │   ├── blog/                 ─ Travel Guides & AI Updates
+│   │   ├── contact/              ─ Secure Form · Founder Card
+│   │   ├── help/                 ─ FAQ Center & Support
+│   │   ├── safety/               ─ Platform Safety & Trust
+│   │   ├── cancellation/         ─ Cancellation Matrix
+│   │   ├── refunds/              ─ Refund Policy & Timelines
+│   │   ├── terms/                ─ Terms of Service
+│   │   ├── privacy/              ─ GDPR Privacy Policy
+│   │   ├── cookies/              ─ Cookie Settings
+│   │   └── verify-ticket/        ─ QR Scan Verification Portal
 │   │
-│   ├── web/                          ◆ Next.js 15 · App Router · 30+ routes
-│   │   │
-│   │   ├── app/
-│   │   │   ├── (auth)/               ─ Login · Register · Verify OTP
-│   │   │   ├── (dashboard)/
-│   │   │   │   ├── admin/            ─ Ultra-Premium Admin Command Center
-│   │   │   │   ├── user/             ─ User Profile · Wallet · Bookings
-│   │   │   │   └── vendor/           ─ Vendor Service Controller
-│   │   │   │
-│   │   │   ├── ── BOOKING FLOWS ──────────────────────────────────────
-│   │   │   ├── booking/              ─ Checkout · Seat Lock · Coupons
-│   │   │   ├── bookings/             ─ History · Cancellation · Refunds
-│   │   │   ├── payments/             ─ Cashfree Redirects · Verification
-│   │   │   ├── tickets/              ─ QR E-Tickets · PDF Receipt
-│   │   │   ├── wallet/               ─ Balance · Ledger · Top-up
-│   │   │   │
-│   │   │   ├── ── LISTING PAGES ──────────────────────────────────────
-│   │   │   ├── buses/                ─ Bus Listings · Tabbed Search
-│   │   │   ├── trains/               ─ Train Listings · Tabbed Search
-│   │   │   ├── flights/              ─ Flight Listings · Tabbed Search
-│   │   │   ├── hotels/               ─ Hotel Listings · Tabbed Search
-│   │   │   ├── events/               ─ Event Listings · Tabbed Search
-│   │   │   ├── services/             ─ Dynamic Details · Seat Mapping
-│   │   │   ├── search/               ─ Advanced Search & Filters
-│   │   │   ├── wishlist/             ─ Saved Services Collection
-│   │   │   │
-│   │   │   ├── ── INFORMATIONAL HUB ──────────────────────────────────
-│   │   │   ├── about/                ─ Company Story · Vishal Soni
-│   │   │   ├── careers/              ─ Open Positions Board
-│   │   │   ├── press/                ─ News & Media Kit
-│   │   │   ├── blog/                 ─ Travel Guides & AI Updates
-│   │   │   ├── contact/              ─ Secure Form · Founder Card
-│   │   │   ├── help/                 ─ FAQ Center & Support
-│   │   │   ├── safety/               ─ Platform Safety & Trust
-│   │   │   ├── cancellation/         ─ Cancellation Matrix
-│   │   │   ├── refunds/              ─ Refund Policy & Timelines
-│   │   │   ├── terms/                ─ Terms of Service
-│   │   │   ├── privacy/              ─ GDPR Privacy Policy
-│   │   │   ├── cookies/              ─ Cookie Settings
-│   │   │   └── verify-ticket/        ─ QR Scan Verification Portal
-│   │   │
-│   │   ├── components/
-│   │   │   ├── ui/                   ─ Custom UI primitives (Input · Textarea · Button)
-│   │   │   ├── layout/               ─ Nav · Footer · Glassmorphic Headers
-│   │   │   ├── shared/               ─ Tabbed Search · Cmd-K · ScrollToTop
-│   │   │   ├── booking/              ─ Premium SeatMap · Lock Indicator
-│   │   │   └── ai/                   ─ AI Travel Companion Chat
-│   │   │
-│   │   ├── lib/                      ─ API Client · Zustand Stores · Utilities
-│   │   ├── providers/                ─ Theme Provider
-│   │   └── styles/                   ─ Global CSS · Orbs · Noise · Animations
+│   ├── components/
+│   │   ├── ui/                   ─ Custom UI primitives (Input · Textarea · Button)
+│   │   ├── layout/               ─ Nav · Footer · Glassmorphic Headers
+│   │   ├── shared/               ─ Tabbed Search · Cmd-K · ScrollToTop
+│   │   ├── booking/              ─ Premium SeatMap · Lock Indicator
+│   │   └── ai/                   ─ AI Travel Companion Chat
 │   │
-│   └── api/                          ◆ Express.js · TypeScript · REST + WebSocket
-│       ├── src/
-│       │   ├── config/               ─ Rate Limiting · Env · Redis Config
-│       │   ├── middleware/           ─ Auth · Validation · Error Handling
-│       │   ├── routes/               ─ 13 Route Modules (Auth, Bookings, AI, Admin...)
-│       │   ├── services/             ─ Business Logic · Seat Locking
-│       │   ├── validators/           ─ Zod Request Schemas
-│       │   └── utils/                ─ Email · Redis · Token Helpers
-│       └── prisma/                   ─ Schema · Migrations · Seed (420 services)
+│   ├── lib/                      ─ API Client · Zustand Stores · Utilities
+│   ├── providers/                ─ Theme Provider
+│   └── styles/                   ─ Global CSS · Orbs · Noise · Animations
+│
+├── backend/                          ◆ Express.js · TypeScript · REST + WebSocket
+│   ├── src/
+│   │   ├── config/               ─ Rate Limiting · Env · Redis Config
+│   │   ├── middleware/           ─ Auth · Validation · Error Handling
+│   │   ├── routes/               ─ 13 Route Modules (Auth, Bookings, AI, Admin...)
+│   │   ├── services/             ─ Business Logic · Seat Locking
+│   │   ├── validators/           ─ Zod Request Schemas
+│   │   └── utils/                ─ Email · Redis · Token Helpers
+│   └── prisma/                   ─ Schema · Migrations · Seed (420 services)
 │
 │── docker/                           ◆ Docker & Nginx Production Configs
 └── packages/                         ◆ Shared Packages (future)
@@ -289,8 +286,8 @@ cd arvis-x
 npm install
 
 # 3. Configure environment variables
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.local.example apps/web/.env.local
+cp backend/.env.example backend/.env
+cp frontend/.env.local.example frontend/.env.local
 
 # 4. Set up the database schema
 npm run db:generate

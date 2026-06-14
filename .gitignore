@@ -34,7 +34,7 @@ Thumbs.db
 coverage/
 
 # Prisma
-apps/api/prisma/migrations/
+backend/prisma/migrations/
 
 # Docker
 docker/data/

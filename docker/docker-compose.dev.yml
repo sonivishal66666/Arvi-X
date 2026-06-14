@@ -36,7 +36,7 @@ services:
 
   api:
     build:
-      context: ../apps/api
+      context: ../backend
       dockerfile: Dockerfile.dev
     container_name: arvis-api
     restart: unless-stopped
@@ -56,12 +56,12 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ../apps/api/src:/app/src
-      - ../apps/api/prisma:/app/prisma
+      - ../backend/src:/app/src
+      - ../backend/prisma:/app/prisma
 
   web:
     build:
-      context: ../apps/web
+      context: ../frontend
       dockerfile: Dockerfile.dev
     container_name: arvis-web
     restart: unless-stopped
@@ -73,7 +73,7 @@ services:
     depends_on:
       - api
     volumes:
-      - ../apps/web:/app
+      - ../frontend:/app
       - /app/node_modules
       - /app/.next
 

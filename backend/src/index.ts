@@ -121,11 +121,15 @@ redis = initRedis();
 setupSocketHandlers(io);
 setupCronJobs();
 
-httpServer.listen(config.PORT, () => {
-  console.log(`🚀 Arvis X API running on port ${config.PORT}`);
-  console.log(`📡 Environment: ${config.NODE_ENV}`);
-  console.log(`🔗 WebSocket: ${config.WS_URL}`);
-});
+if (config.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  httpServer.listen(config.PORT, () => {
+    console.log(`🚀 Arvis X API running on port ${config.PORT}`);
+    console.log(`📡 Environment: ${config.NODE_ENV}`);
+    console.log(`🔗 WebSocket: ${config.WS_URL}`);
+  });
+}
+
+export default app;
 
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received. Shutting down gracefully...');
