@@ -4,12 +4,14 @@
   "private": true,
   "description": "Ultra-premium AI-powered travel and ticket booking platform",
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "start": "turbo start",
-    "lint": "turbo lint",
-    "test": "turbo test",
-    "clean": "turbo clean",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "clean": "rimraf node_modules backend/node_modules frontend/node_modules backend/dist frontend/.next",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\"",
     "db:generate": "cd backend && npx prisma generate",
     "db:push": "cd backend && npx prisma db push",
@@ -17,11 +19,12 @@
     "db:seed": "cd backend && npx ts-node scripts/seed.ts",
     "docker:dev": "docker-compose -f docker/docker-compose.dev.yml up",
     "docker:prod": "docker-compose -f docker/docker-compose.prod.yml up",
-    "setup": "npm install && turbo run db:generate && turbo run db:push && turbo run db:seed"
+    "setup": "npm install && npm run db:generate --workspace=backend && npm run db:push --workspace=backend && npm run db:seed --workspace=backend"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "prettier": "^3.2.5",
-    "turbo": "^2.0.4",
+    "rimraf": "^5.0.7",
     "typescript": "^5.4.5"
   },
   "engines": {
