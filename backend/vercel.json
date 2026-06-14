@@ -1,9 +1,0 @@
-{
-  "buildCommand": "npx prisma generate",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api"
-    }
-  ]
-}

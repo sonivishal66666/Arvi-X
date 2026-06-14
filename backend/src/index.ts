@@ -44,6 +44,7 @@ const initRedis = () => {
 export let redis: any;
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
 
 const io = new SocketServer(httpServer, {
@@ -127,7 +128,7 @@ redis = initRedis();
 setupSocketHandlers(io);
 setupCronJobs();
 
-if (config.NODE_ENV !== 'test' && !process.env.VERCEL) {
+if (config.NODE_ENV !== 'test') {
   httpServer.listen(config.PORT, () => {
     console.log(`🚀 Arvis X API running on port ${config.PORT}`);
     console.log(`📡 Environment: ${config.NODE_ENV}`);
