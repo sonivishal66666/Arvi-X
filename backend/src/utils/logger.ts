@@ -34,7 +34,7 @@ const format = winston.format.combine(
 
 const transports = [
   new winston.transports.Console(),
-  ...(config.NODE_ENV === 'production'
+  ...(config.NODE_ENV === 'production' && !process.env.VERCEL
     ? [
         new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
         new winston.transports.File({ filename: 'logs/combined.log' }),
