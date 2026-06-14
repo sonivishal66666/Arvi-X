@@ -1,17 +1,8 @@
 <div align="center">
 
-<br />
+<img src="apps/web/public/logo.png" alt="Arvis X Logo" width="280" />
 
-```
- █████╗ ██████╗ ██╗   ██╗██╗███████╗    ██╗  ██╗
-██╔══██╗██╔══██╗██║   ██║██║██╔════╝    ╚██╗██╔╝
-███████║██████╔╝██║   ██║██║███████╗     ╚███╔╝ 
-██╔══██║██╔══██╗╚██╗ ██╔╝██║╚════██║     ██╔██╗ 
-██║  ██║██║  ██║ ╚████╔╝ ██║███████║    ██╔╝ ██╗
-╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝    ╚═╝  ╚═╝
-```
-
-### ✦ The Next-Generation AI-Powered Travel & Booking Platform ✦
+### ✦ Next-Generation AI-Powered Travel & Booking Platform ✦
 
 <br />
 
@@ -36,7 +27,7 @@
 
 <br />
 
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](#)
+---
 
 </div>
 
@@ -55,15 +46,7 @@
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## ✨ Features
-
-</div>
-
-<br />
 
 <table>
 <tr>
@@ -187,15 +170,7 @@
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 🛠️ Tech Stack
-
-</div>
-
-<br />
 
 <div align="center">
 
@@ -217,15 +192,7 @@
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 🏗️ Architecture
-
-</div>
-
-<br />
 
 ```
 arvis-x/                              ◆ Turborepo Monorepo
@@ -294,21 +261,13 @@ arvis-x/                              ◆ Turborepo Monorepo
 │       │   └── utils/                ─ Email · Redis · Token Helpers
 │       └── prisma/                   ─ Schema · Migrations · Seed (420 services)
 │
-├── docker/                           ◆ Docker & Nginx Production Configs
+│── docker/                           ◆ Docker & Nginx Production Configs
 └── packages/                         ◆ Shared Packages (future)
 ```
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 🚀 Quick Start
-
-</div>
-
-<br />
 
 ### Prerequisites
 
@@ -323,7 +282,7 @@ arvis-x/                              ◆ Turborepo Monorepo
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/arvis-x.git
+git clone https://github.com/sonivishal66666/Arvi-X.git
 cd arvis-x
 
 # 2. Install all workspace dependencies
@@ -389,15 +348,7 @@ npm run build && npm run start
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 📊 API Reference
-
-</div>
-
-<br />
 
 > **Base URL:** `http://localhost:4000`  
 > **Auth:** Bearer JWT token in `Authorization` header (all protected routes)
@@ -619,15 +570,7 @@ npm run build && npm run start
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 🗄️ Seed Data
-
-</div>
-
-<br />
 
 <div align="center">
 
@@ -647,20 +590,7 @@ All services include real **Unsplash images**, departure/arrival schedules, dyna
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 🔑 Architectural Decisions
-
-</div>
-
-<br />
-
-```
-KEY DESIGN PRINCIPLES & ENGINEERING DECISIONS
-═══════════════════════════════════════════════
-```
 
 | Decision | Rationale |
 |----------|-----------|
@@ -676,21 +606,9 @@ KEY DESIGN PRINCIPLES & ENGINEERING DECISIONS
 
 <br />
 
-<div align="center">
-
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)](#)
-
 ## 📄 License
 
-</div>
-
-<br />
-
-<div align="center">
-
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-<br />
 
 ```
 MIT License · Free to use · Free to modify · Free to distribute
@@ -698,9 +616,9 @@ MIT License · Free to use · Free to modify · Free to distribute
 
 <br />
 
-[![——————————————————————————————————————————](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)](#)
+<div align="center">
 
-<br />
+---
 
 <table>
 <tr>

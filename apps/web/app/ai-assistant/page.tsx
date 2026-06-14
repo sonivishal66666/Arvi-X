@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles, Send, Bot, User, Loader2, Mic, MicOff, Calendar,
-  DollarSign, Compass, MapPin, ChevronRight, Plane, Hotel, Train, Bus, Ticket
+Compass, Send, Bot, User, Loader2, Mic, MicOff, Calendar,
+  MapPin, ChevronRight, Plane, Hotel, Train, Bus, Ticket, Shield,
+  Zap,
 } from 'lucide-react';
 import { aiApi } from '@/lib/api';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import toast from 'react-hot-toast';
+import { ClientOnly } from '@/components/shared/client-only';
 
 interface Message {
   id: string;
@@ -20,30 +22,58 @@ interface Message {
   createdAt: string;
 }
 
+const ease = [0.16, 1, 0.3, 1];
+const fadeInUp = { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease } };
+const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
+
 export default function AIAssistantPage() {
   const [activeTab, setActiveTab] = useState<'chat' | 'itinerary' | 'recommendations'>('chat');
 
   return (
-    <div className="pt-24 min-h-screen bg-[#020208] text-white overflow-hidden relative pb-16">
+    <div className="pt-28 min-h-screen bg-black text-white overflow-hidden relative pb-16">
       {/* Dynamic Backdrops */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-[200px] -left-[200px] w-[600px] h-[600px] rounded-full bg-indigo-600/[0.06] blur-[150px] animate-orb-pulse" />
+        <div className="absolute -bottom-[100px] -right-[200px] w-[500px] h-[500px] rounded-full bg-purple-500/[0.04] blur-[150px] animate-orb-pulse animation-delay-4000" />
+        <div className="absolute top-1/3 left-1/2 w-[400px] h-[400px] rounded-full bg-indigo-500/[0.03] blur-[120px] animate-float-slow" />
+      </div>
       <div className="absolute inset-0 grid-bg opacity-15 pointer-events-none" />
-      <div className="orb w-[500px] h-[500px] bg-indigo-500/5 top-20 left-10 pointer-events-none animate-orb-pulse" />
-      <div className="orb w-[500px] h-[500px] bg-purple-500/5 bottom-20 right-10 pointer-events-none animate-float" />
+
+      {/* Moving background particles */}
+      <ClientOnly>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {Array.from({ length: 15 }).map((_, i) => (
+            <motion.div key={i} className="absolute w-[2px] h-[2px] rounded-full bg-indigo-400/30"
+              style={{ left: `${10 + Math.random() * 80}%`, top: `${Math.random() * 100}%` }}
+              animate={{ y: [0, -200], opacity: [0, 0.8, 0] }}
+              transition={{ duration: 5 + Math.random() * 5, repeat: Infinity, delay: Math.random() * 5, ease: 'linear' }} />
+          ))}
+        </div>
+      </ClientOnly>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-6">
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <Badge className="mb-3 px-4 py-1.5 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-full text-xs font-semibold animate-pulse-glow">
-            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
-            AI Travel Concierge
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-            Neural Travel Assistant
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease }}>
+            <Badge className="mb-5 px-4 py-1.5 rounded-full glass border border-white/[0.08] text-indigo-300 text-[10px] tracking-[0.25em] uppercase font-medium animate-pulse-glow">
+              <Compass className="w-3.5 h-3.5 mr-2 text-indigo-400" />
+              AI Travel Concierge
+            </Badge>
+          </motion.div>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4 text-glow" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Neural Travel <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Planner</span>
           </h1>
-          <p className="text-xs md:text-sm text-white/50 max-w-xl font-light">
-            Unlock bespoke blueprints, predictive travel pathways, and instant terminal support via our cognitive routing agent.
+          <p className="text-base md:text-lg text-white/40 max-w-xl mx-auto font-light leading-relaxed">
+            Unlock bespoke itineraries, predictive travel pathways, and instant terminal support via our cognitive routing agent.
           </p>
+          <div className="flex items-center justify-center gap-6 mt-6 text-white/20">
+            <div className="flex items-center gap-1.5 text-[11px] font-light"><Shield className="w-3.5 h-3.5" /><span>Secure Encryption</span></div>
+            <div className="flex items-center gap-1.5 text-[11px] font-light"><Zap className="w-3.5 h-3.5" /><span>Predictive Routing</span></div>
+            <div className="flex items-center gap-1.5 text-[11px] font-light"><Compass className="w-3.5 h-3.5" /><span>Real-Time Sync</span></div>
+          </div>
         </div>
+
+        <div className="w-full h-px mb-10"><div className="line-glow w-full animate-gradient-x" /></div>
 
         {/* Floating Navigation Bar */}
         <div className="flex justify-center mb-10">
@@ -51,7 +81,7 @@ export default function AIAssistantPage() {
             {[
               { id: 'chat', label: 'AI Core Chat', icon: Bot },
               { id: 'itinerary', label: 'Itinerary Engine', icon: Compass },
-              { id: 'recommendations', label: 'Smart Feeds', icon: Sparkles }
+              { id: 'recommendations', label: 'Smart Feeds', icon: Compass }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -212,7 +242,11 @@ function AIChatTab() {
   };
 
   return (
-    <div className="glass border border-white/[0.08] max-w-4xl mx-auto rounded-[24px] overflow-hidden flex flex-col h-[620px] shadow-2xl relative bg-black/40">
+    <div className="relative rounded-3xl p-1 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md overflow-hidden flex flex-col h-[620px] shadow-2xl max-w-4xl mx-auto">
+      {/* Cybernetic glowing border trails */}
+      <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+      <div className="absolute bottom-0 right-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-purple-400 to-transparent" />
+
       {/* Messages View */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-thin">
         {messages.map((msg) => (
@@ -233,10 +267,10 @@ function AIChatTab() {
             </div>
             
             <div className={cn(
-              'px-5 py-3.5 rounded-[20px] text-xs md:text-sm leading-relaxed border shadow-[0_5px_15px_rgba(0,0,0,0.2)]',
+              'px-5 py-3.5 rounded-2xl text-xs md:text-sm leading-relaxed border shadow-[0_5px_15px_rgba(0,0,0,0.2)]',
               msg.role === 'USER'
                 ? 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white border-indigo-500/20 rounded-tr-none'
-                : 'glass border-white/[0.08] text-white/90 rounded-tl-none'
+                : 'glass border-white/[0.06] text-white/90 rounded-tl-none bg-black/40'
             )}>
               {msg.content}
             </div>
@@ -248,7 +282,7 @@ function AIChatTab() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
               <Bot className="w-4.5 h-4.5 text-white" />
             </div>
-            <div className="glass border border-white/[0.08] px-5 py-3.5 rounded-2xl rounded-tl-none flex items-center gap-2">
+            <div className="glass border border-white/[0.08] px-5 py-3.5 rounded-2xl rounded-tl-none flex items-center gap-2 bg-black/40">
               <Loader2 className="w-4.5 h-4.5 animate-spin text-indigo-400" />
               <span className="text-xs text-white/40 font-light">Processing query...</span>
             </div>
@@ -259,8 +293,8 @@ function AIChatTab() {
 
       {/* Mic Animation Overlay */}
       {isListening && (
-        <div className="absolute inset-x-0 bottom-36 flex items-center justify-center pointer-events-none">
-          <div className="flex items-center gap-1.5 bg-black/60 px-5 py-2.5 rounded-full border border-rose-500/30 shadow-lg backdrop-blur-md">
+        <div className="absolute inset-x-0 bottom-36 flex items-center justify-center pointer-events-none z-30">
+          <div className="flex items-center gap-1.5 bg-black/80 px-5 py-2.5 rounded-full border border-rose-500/30 shadow-lg backdrop-blur-md">
             {[1, 2, 3, 4, 5].map((idx) => (
               <motion.div
                 key={idx}
@@ -276,12 +310,12 @@ function AIChatTab() {
 
       {/* Suggestion Chips */}
       {suggestions.length > 0 && (
-        <div className="px-6 py-3 flex gap-2 overflow-x-auto whitespace-nowrap border-t border-white/[0.04] bg-black/30 scrollbar-none">
+        <div className="px-6 py-3 flex gap-2 overflow-x-auto whitespace-nowrap border-t border-white/[0.04] bg-black/35 scrollbar-none z-10">
           {suggestions.map((s, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(s)}
-              className="text-[11px] px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white border border-white/[0.06] transition-all duration-300 active:scale-[0.98]"
+              className="text-[11px] px-4 py-2 rounded-xl bg-white/[0.02] hover:bg-indigo-950/20 border border-white/[0.06] hover:border-indigo-500/30 text-white/50 hover:text-white transition-all duration-300 active:scale-[0.98] transform hover:scale-[1.02]"
             >
               {s}
             </button>
@@ -290,7 +324,7 @@ function AIChatTab() {
       )}
 
       {/* Input controls */}
-      <div className="p-4 border-t border-white/[0.08] bg-[#03020c]/80 backdrop-blur-md relative">
+      <div className="p-4 border-t border-white/[0.08] bg-black/80 backdrop-blur-md relative z-10">
         <div className="flex gap-3 items-center">
           <div className="relative flex-1">
             <Input
@@ -298,7 +332,7 @@ function AIChatTab() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask Arvis about booking, routes, hotels..."
-              className="w-full bg-white/[0.03] border-white/10 focus-visible:ring-indigo-500/30 text-white placeholder:text-white/20 h-12 rounded-xl pl-4 pr-12 text-xs md:text-sm"
+              className="w-full bg-white/[0.02] border-white/10 focus-visible:ring-indigo-500/30 text-white placeholder:text-white/20 h-12 rounded-xl pl-4 pr-12 text-xs md:text-sm"
               disabled={isLoading}
             />
             <button
@@ -426,7 +460,7 @@ function AIItineraryTab() {
               <a
                 key={cat}
                 href={route}
-                className="group p-4 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-indigo-500/30 rounded-2xl transition-all duration-300 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-500/5"
+                className="group p-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-indigo-500/30 rounded-2xl transition-all duration-300 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-500/5"
               >
                 <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center shrink-0 border border-white/5">
                   {icon}
@@ -448,9 +482,10 @@ function AIItineraryTab() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-5xl mx-auto">
       {/* Blueprint form */}
       <div className="lg:col-span-4">
-        <form onSubmit={handleGenerate} className="glass border border-white/[0.08] p-6 rounded-3xl space-y-5 shadow-lg bg-black/20">
+        <form onSubmit={handleGenerate} className="relative rounded-3xl p-6 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md shadow-lg space-y-5">
+          <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
           <h3 className="text-base font-bold flex items-center gap-2 tracking-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-            <Compass className="w-5 h-5 text-indigo-400 animate-spin-slow" />
+            <Compass className="w-5 h-5 text-indigo-400" />
             Blueprint Parameters
           </h3>
 
@@ -462,7 +497,7 @@ function AIItineraryTab() {
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 placeholder="e.g. Kyoto, London"
-                className="input-premium pl-10 border-white/10 w-full h-11"
+                className="input-premium pl-10 border-white/[0.06] w-full h-11 bg-white/[0.02]"
                 required
               />
             </div>
@@ -478,7 +513,7 @@ function AIItineraryTab() {
                 max={14}
                 value={duration}
                 onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-                className="input-premium pl-10 border-white/10 w-full h-11"
+                className="input-premium pl-10 border-white/[0.06] w-full h-11 bg-white/[0.02]"
               />
             </div>
           </div>
@@ -492,7 +527,7 @@ function AIItineraryTab() {
                 min={1000}
                 value={budget}
                 onChange={(e) => setBudget(parseInt(e.target.value) || 1000)}
-                className="input-premium pl-10 border-white/10 w-full h-11"
+                className="input-premium pl-10 border-white/[0.06] w-full h-11 bg-white/[0.02]"
               />
             </div>
           </div>
@@ -503,7 +538,7 @@ function AIItineraryTab() {
               value={interests}
               onChange={(e) => setInterests(e.target.value)}
               placeholder="e.g. Museums, Fine Stays"
-              className="input-premium border-white/10 w-full h-11"
+              className="input-premium border-white/[0.06] w-full h-11 bg-white/[0.02]"
             />
           </div>
 
@@ -513,14 +548,14 @@ function AIItineraryTab() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="input-premium border-white/10 w-full h-11 text-white/60"
+              className="input-premium border-white/[0.06] w-full h-11 bg-white/[0.02] text-white/60"
             />
           </div>
 
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 border-0 rounded-xl font-bold flex items-center justify-center gap-2 text-white shadow-lg shadow-indigo-500/10 mt-4"
+            className="w-full h-11 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:brightness-110 border-0 rounded-xl font-bold flex items-center justify-center gap-2 text-white shadow-lg shadow-indigo-500/10 mt-4"
           >
             {isLoading ? (
               <>
@@ -529,7 +564,7 @@ function AIItineraryTab() {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-white" />
+                <Compass className="w-4 h-4 text-white" />
                 Compile Blueprint
               </>
             )}
@@ -539,7 +574,7 @@ function AIItineraryTab() {
 
       {/* Output Displays */}
       <div className="lg:col-span-8 flex flex-col">
-        <div className="glass-card flex-1 min-h-[400px] p-6 border border-white/[0.08] relative overflow-hidden shadow-2xl flex flex-col justify-between bg-black/40">
+        <div className="relative rounded-3xl p-6 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md shadow-2xl min-h-[400px] flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
           
           {isLoading ? (
@@ -554,18 +589,30 @@ function AIItineraryTab() {
                   <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Compiled Itinerary Blueprint</h3>
                   <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1 font-light"> BESP-DEPT: {destination} ({duration} days)</p>
                 </div>
-                <Badge className="bg-indigo-500/15 text-indigo-300 border-indigo-500/20 text-xs">{formatCurrency(budget)} CAP</Badge>
+                <Badge className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 text-xs">{formatCurrency(budget)} CAP</Badge>
               </div>
 
-              <div className="text-xs md:text-sm text-white/80 leading-relaxed whitespace-pre-wrap font-sans space-y-4 font-light">
-                {itineraryHtml}
+              {/* Rendering timeline segments natively */}
+              <div className="text-xs md:text-sm text-white/80 leading-relaxed whitespace-pre-wrap font-sans space-y-4 font-light relative pl-4 border-l border-indigo-500/20 ml-2">
+                {itineraryHtml.split('\n').map((line, idx) => {
+                  const isDayHeader = line.toLowerCase().includes('day ') || line.toLowerCase().startsWith('day');
+                  if (isDayHeader) {
+                    return (
+                      <div key={idx} className="relative mt-6 mb-2">
+                        <div className="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] border-2 border-black" />
+                        <h4 className="text-sm font-bold text-indigo-300" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{line}</h4>
+                      </div>
+                    );
+                  }
+                  return <p key={idx} className="my-1.5 text-white/70 font-light">{line}</p>;
+                })}
               </div>
 
               {renderItineraryActionCards(itineraryHtml)}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-              <Compass className="w-12 h-12 text-white/10 mb-4 animate-float" />
+              <Compass className="w-12 h-12 text-white/10 mb-4 animate-pulse" />
               <h3 className="text-sm font-semibold mb-1" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Console Offline</h3>
               <p className="text-xs text-white/40 max-w-xs leading-relaxed font-light">
                 Parameters required. Submit the configuration panel to coordinate dynamic travel nodes.
@@ -607,12 +654,12 @@ function AIRecommendationsTab() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="glass-card rounded-[20px] border border-white/5 h-[280px] shimmer" />
+            <div key={i} className="rounded-2xl bg-white/[0.02] border border-white/5 h-[280px] shimmer" />
           ))}
         </div>
       ) : recommendations.length === 0 ? (
-        <div className="glass-card p-12 text-center border border-white/[0.08] rounded-3xl bg-black/40">
-          <Sparkles className="w-9 h-9 text-white/20 mx-auto mb-3 animate-float" />
+        <div className="relative rounded-3xl p-12 text-center border border-white/[0.08] bg-gradient-to-br from-black/85 to-neutral-950 backdrop-blur-md">
+          <Compass className="w-9 h-9 text-white/20 mx-auto mb-3 animate-pulse" />
           <p className="text-xs font-semibold text-white">Empty Registry</p>
           <p className="text-[10px] text-white/40 max-w-xs mx-auto mt-1 font-light">Book transit journeys or save properties to sync recommendation paths.</p>
         </div>
@@ -622,8 +669,12 @@ function AIRecommendationsTab() {
             <a
               key={svc.id}
               href={`/services/${svc.id}`}
-              className="group glass-card rounded-[20px] overflow-hidden border border-white/[0.08] hover:border-indigo-500/20 shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 block bg-black/20"
+              className="relative rounded-2xl overflow-hidden border border-white/[0.04] hover:border-indigo-500/30 shadow-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.12)] transition-all duration-500 block bg-gradient-to-br from-black/85 to-neutral-950 group h-full"
             >
+              {/* Cybernetic glowing border trails */}
+              <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent group-hover:w-[50%] transition-all duration-700" />
+              <div className="absolute bottom-0 right-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-purple-400 to-transparent group-hover:w-[50%] transition-all duration-700" />
+
               <div className="aspect-[16/10] relative overflow-hidden bg-black/40">
                 <img
                   src={svc.images?.[0] || 'https://images.unsplash.com/photo-1517976487492-5750f3195933?w=600&q=80'}
@@ -632,16 +683,16 @@ function AIRecommendationsTab() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className="glass text-white/95 border-white/10 text-[9px] font-light">{svc.category}</Badge>
+                  <Badge className="bg-white/10 text-white/90 border border-white/20 text-[9px] font-bold px-2 py-0.5 rounded-md backdrop-blur-md">{svc.category}</Badge>
                   {svc.discountPercent > 0 && (
                     <Badge className="bg-red-500/80 text-white border-0 text-[9px] font-bold">-{svc.discountPercent}%</Badge>
                   )}
                 </div>
               </div>
 
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-3 relative z-10">
                 <div>
-                  <h4 className="font-semibold text-xs text-white group-hover:text-indigo-400 transition-colors truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{svc.title}</h4>
+                  <h4 className="font-bold text-xs text-white group-hover:text-indigo-400 transition-colors truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{svc.title}</h4>
                   <p className="text-[10px] text-white/40 truncate mt-0.5 font-light">{svc.vendor?.businessName || 'Premium transit'}</p>
                 </div>
 
@@ -651,7 +702,7 @@ function AIRecommendationsTab() {
                     <span className="text-xs font-semibold text-white/80">{svc.rating || '4.5'}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-indigo-400">{formatCurrency(svc.basePrice)}</p>
+                    <p className="text-xs font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-mono">{formatCurrency(svc.basePrice)}</p>
                   </div>
                 </div>
               </div>

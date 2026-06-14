@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Train, Bus, Plane, Hotel, Calendar as CalendarIcon, Ticket, ArrowRightLeft, Search, CheckCircle } from 'lucide-react';
@@ -40,6 +40,12 @@ export function SearchConsole() {
   const router = useRouter();
   const [activeCat, setActiveCat] = useState('train');
   const [activeSubTab, setActiveSubTab] = useState(subTabs.train[0]);
+
+  // Prefetch category page on active category change
+  useEffect(() => {
+    const path = activeCat === 'bus' ? '/buses' : `/${activeCat}s`;
+    router.prefetch(path);
+  }, [activeCat, router]);
 
   // Form states
   const [from, setFrom] = useState('Loharu');

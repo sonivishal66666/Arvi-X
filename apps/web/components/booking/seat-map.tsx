@@ -58,7 +58,7 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin" />
+        <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
       </div>
     );
   }
@@ -67,22 +67,23 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-6 text-sm">
+      {/* HUD Legend */}
+      <div className="flex flex-wrap items-center gap-6 text-xs bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg border-2 border-white/20 bg-white/5" />
-          <span className="text-muted-foreground">Available</span>
+          <div className="w-4 h-4 rounded bg-white/[0.02] border-2 border-emerald-500/30" />
+          <span className="text-white/45">Available</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-primary/30 border-2 border-primary/50" />
-          <span className="text-muted-foreground">Selected</span>
+          <div className="w-4 h-4 rounded bg-cyan-500/20 border-2 border-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
+          <span className="text-white/45">Selected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-rose-500/30 border-2 border-rose-500/50" />
-          <span className="text-muted-foreground">Booked</span>
+          <div className="w-4 h-4 rounded bg-rose-950/20 border-2 border-rose-900/30" />
+          <span className="text-white/45">Booked</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-lg bg-amber-500/20 border-2 border-amber-500/30" />
-          <span className="text-muted-foreground">Locked</span>
+          <div className="w-4 h-4 rounded bg-amber-950/20 border-2 border-amber-900/30" />
+          <span className="text-white/45">Locked</span>
         </div>
       </div>
 
@@ -92,19 +93,20 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
         const cols = ['W', 'A', 'B', 'C', 'D'];
 
         return (
-          <div key={deck} className="glass p-6 rounded-2xl">
+          <div key={deck} className="p-5 rounded-2xl bg-white/[0.01] border border-white/[0.04] backdrop-blur-md">
             {sortedDecks.length > 1 && (
-              <p className="text-sm text-muted-foreground mb-4 font-medium">
+              <p className="text-xs text-white/30 mb-4 font-semibold tracking-wider uppercase">
                 Deck {deck}
               </p>
             )}
 
             <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center">
-                <div className="w-1 h-full rounded-full bg-gradient-to-b from-primary/20 to-primary/5" />
+              {/* Cockpit laser guide line */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center pointer-events-none">
+                <div className="w-[1px] h-full bg-gradient-to-b from-cyan-500/30 via-purple-500/20 to-transparent" />
               </div>
 
-              <div className="ml-10 space-y-2">
+              <div className="ml-8 space-y-2">
                 {Array.from({ length: maxRow }, (_, rowIdx) => {
                   const row = rowIdx + 1;
                   const rowSeats = deckSeats.filter(s => s.row === row).sort((a, b) => {
@@ -116,8 +118,8 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
                   if (rowSeats.length === 0) return <div key={row} className="h-10" />;
 
                   return (
-                    <div key={row} className="flex items-center gap-1.5">
-                      <span className="w-6 text-right text-xs text-muted-foreground">{row}</span>
+                    <div key={row} className="flex items-center gap-2">
+                      <span className="w-6 text-right text-[10px] text-white/30 font-semibold tracking-wider font-mono mr-1">{row}</span>
                       {rowSeats.map((seat) => {
                         const isBooked = seat.status === 'BOOKED';
                         const isLocked = seat.status === 'LOCKED';
@@ -127,19 +129,25 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
                         return (
                           <motion.button
                             key={seat.id}
-                            whileTap={{ scale: 0.9 }}
+                            whileTap={{ scale: 0.92 }}
                             onClick={() => toggleSeat(seat)}
                             disabled={unavailable}
                             className={cn(
-                              'w-10 h-10 rounded-xl flex items-center justify-center text-xs font-medium transition-all duration-200',
-                              isBooked && 'bg-rose-500/30 border-2 border-rose-500/50 cursor-not-allowed text-rose-300',
-                              isLocked && 'bg-amber-500/20 border-2 border-amber-500/30 cursor-not-allowed text-amber-300',
-                              isSelected && 'bg-primary/30 border-2 border-primary/50 text-primary shadow-lg shadow-primary/20',
-                              !unavailable && !isSelected && 'bg-white/5 border-2 border-white/10 hover:border-primary/30 hover:bg-white/10 text-white/70',
+                              'w-10 h-10 rounded-xl flex items-center justify-center text-xs font-semibold transition-all duration-300 relative',
+                              isBooked && 'bg-rose-950/20 border-2 border-rose-900/30 cursor-not-allowed text-rose-700/60',
+                              isLocked && 'bg-amber-950/20 border-2 border-amber-900/30 cursor-not-allowed text-amber-700/60',
+                              isSelected && 'bg-cyan-500/25 border-2 border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.4)]',
+                              !unavailable && !isSelected && 'bg-white/[0.02] border-2 border-emerald-500/20 hover:border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/5',
                             )}
                             title={`${seat.seatNumber} - ₹${seat.price}`}
                           >
-                            <Chair className="w-4 h-4" />
+                            <Chair className={cn(
+                              'w-4 h-4 transition-all duration-300',
+                              isSelected ? 'scale-110 drop-shadow-[0_0_4px_rgba(34,211,238,0.8)]' : ''
+                            )} />
+                            {isSelected && (
+                              <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cyan-400 text-[8px] text-black font-extrabold flex items-center justify-center rounded-full animate-pulse shadow-[0_0_4px_rgba(34,211,238,0.8)]">✓</span>
+                            )}
                           </motion.button>
                         );
                       })}
@@ -153,12 +161,12 @@ export function SeatMap({ serviceId, scheduleId }: SeatMapProps) {
       })}
 
       {selectedSeats.length > 0 && (
-        <div className="glass p-4 rounded-2xl flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-cyan-950/15 border border-cyan-500/25 flex items-center justify-between shadow-[0_0_15px_rgba(6,182,212,0.04)]">
           <div>
-            <p className="text-sm text-muted-foreground">Selected Seats</p>
-            <p className="font-medium">{selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''}</p>
+            <p className="text-[10px] text-cyan-400 font-semibold tracking-widest uppercase">Selected Seating Pods</p>
+            <p className="font-bold text-white text-sm mt-0.5">{selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''}</p>
           </div>
-          <button onClick={clearSeats} className="text-xs text-destructive hover:underline">
+          <button onClick={clearSeats} className="text-xs text-rose-400 hover:text-rose-300 hover:underline transition-colors font-medium">
             Clear all
           </button>
         </div>

@@ -62,9 +62,17 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
@@ -203,6 +211,8 @@
 
   .card-hover {
     @apply transition-all duration-500 hover:-translate-y-1 hover:border-white/[0.15] hover:shadow-[0_20px_45px_rgba(0,0,0,0.25)];
+    will-change: transform, border-color, box-shadow;
+    transform: translate3d(0, 0, 0);
   }
 
   .shimmer {
@@ -211,6 +221,9 @@
 
   .orb {
     @apply absolute rounded-full blur-[100px] opacity-25 animate-orb-pulse;
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
   }
 
   .orb-pulse {
@@ -245,10 +258,10 @@
     inset: 0;
     z-index: 9999;
     pointer-events: none;
-    opacity: 0.012;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.22;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAADI0lEQVR4nB1TWSh0cRT/lZoZ38wdd9wHCg8UIUWJ7EtEjbVpEEKyl5TsvCgmihDRDFJ2kaXJA8pStiwPRJSSpEhTM1lSxPR1zsPt3u499/zWP+rq6sSfnx/c3d0Jp6enCA4ORlNTE76/vxEVFYXk5GTMzMzAYrEovL29ER0djcrKSiwvL8t6enoABwcHjZOTEzw8PLC4uIj393cxISEB8fHxSE9Px8fHB+x2Ozo7O9OHL1evz8/uDm6uLgIeHp6eHx8vIiOjsL19TWeHh/x/v6OpqYmoF6vVygUCjUEQf7+/rj8/HxcXl7i8fER1tfX8enpCSgUCnFzczPMZDP1ej0XjRBkYmKCZpC/qVSqbGxsDCaTCfPz8ywsKxQKnJ2dkVnNzMxgcXERS0tLJbaq58SJE/xcaGgov4xKpRLr6+tc3Pz8PEpLS8m0RkdHZWtra5idnYXVaoVCoZCtr69TXpC+urrK92wEwMTEBB4eHshsbGyMU1Go2r1MptlsRv/+/bOioqJY8/DwwOTkpCAIQr1eXyB/k0RzZkZGRtiZtLe3Mzo5OQmFQoGFhQWxV69ePcrLy+Hp6clh5Obm0vPy/fDwMMkUFc1WfJubm8PNzY0xUicB7U/g7OyMb8bY3NyEwWBg4wPq/x+0wYGBgQCgdHV1cbbOzk44OjpS5PTk5ARjY2OQyWRUo8lkwuzsLDOpAUBn2fT0dPvGjRv1mTNneru/kPqQ5+HhIZhMJubxe71jZ2cHJycnWFpawvw8PAaDwT9aI+t2bW1tRUZVv/LycnZ2vV4PT09PfH5+IuPU1FRv4aGBuzs7Mjf29vbsLa2xrEODg4EqHMRq0pWNjExAS0T6KxHjx619O7dm1hD9K5duxbR01jC2Vl6h6eJE5Q3GvGdnZ3h6urKNYG0CQC1tbWpBw8eLGmXvBqP6t27d4p3s62xsbFh9sPDw96ZmZmZ+D03g+qY9yWtra2pY2NjOb/X1NTUWVtbWw8aNKhCpUaj0QodlR6G+h/LzszM1MzPz9dNTExUJbY9t5Hh4eHhB+9WjD1gQfH0Q5G0qZTYvXu3sIaV+a9du7YZGjXzZ6D9/PPPK3pTpqGwsjZ59NFHW8Wp2Ew4Wp7j9eXn55fPz88v+jvv1mHkLpBwH5TDu/V/tGPHjtoXX3xRMz4wQ1uN63T09m1tbcNbtmwpS3a25yOQpTpxf+3PqP432BofwEicT5y0XFvf/fv3p2P7+uuv02R4zJgxtUQNpWfPnuk1mDqvC6G/7lPj1E68yK172WnU0dM98oVpU/6O1T/sO2DAgDLtQ79jWkDbhBw/fryI+BojpZ4n2+kZfXp6u1atWpW1F24Z3aL9417Yy2/s/wGvGsw6");
     background-repeat: repeat;
-    background-size: 128px 128px;
+    background-size: 16px 16px;
   }
 }
 
@@ -292,4 +305,11 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* GPU-promote large blur glow backgrounds to prevent main thread rendering stutter */
+[class*="bg-"][class*="blur-"] {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }

@@ -2,30 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useUiStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Menu, X, Search, Sun, Moon, User, Bell, LogOut, Settings,
-  LayoutDashboard, Sparkles, ChevronDown, Heart, Wallet,
+Menu, X, Search, User, Bell, LogOut,
+  Settings, LayoutDashboard, Compass, ChevronDown, Heart, Wallet, Plane, Train,
+  Bus, Hotel, Calendar, Command,
 } from 'lucide-react';
 
 const navLinks = [
-  { href: '/buses', label: 'Buses', icon: '🚌' },
-  { href: '/trains', label: 'Trains', icon: '🚄' },
-  { href: '/flights', label: 'Flights', icon: '✈️' },
-  { href: '/hotels', label: 'Hotels', icon: '🏨' },
-  { href: '/events', label: 'Events', icon: '🎫' },
-  { href: '/ai-assistant', label: 'AI Planner', icon: '✨' },
+  { href: '/buses', label: 'Buses', icon: Bus },
+  { href: '/trains', label: 'Trains', icon: Train },
+  { href: '/flights', label: 'Flights', icon: Plane },
+  { href: '/hotels', label: 'Hotels', icon: Hotel },
+  { href: '/events', label: 'Events', icon: Calendar },
+  { href: '/ai-assistant', label: 'AI Planner', icon: Compass },
+];
+
+const dropdownLinks = [
+  { href: '', label: 'Dashboard', icon: LayoutDashboard, roleKey: true },
+  { href: '/wallet', label: 'Wallet', icon: Wallet },
+  { href: '/ai-assistant', label: 'AI Planner', icon: Compass },
+  { href: '/wishlist', label: 'Wishlist', icon: Heart },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Header() {
   const pathname = usePathname();
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const { isMobileMenuOpen, setMobileMenuOpen, setSearchOpen, isSearchOpen } = useUiStore();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,70 +41,123 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Only prefetch in production to avoid flooding the Next.js compiler in dev mode
+    if (process.env.NODE_ENV === 'production') {
+      router.prefetch('/trains');
+      router.prefetch('/buses');
+      router.prefetch('/flights');
+      router.prefetch('/hotels');
+      router.prefetch('/events');
+      router.prefetch('/ai-assistant');
+    }
+  }, [router]);
+
+  useEffect(() => {
     setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown]')) setIsDropdownOpen(false);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [isDropdownOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setIsDropdownOpen(false);
+  }, [pathname, setMobileMenuOpen]);
 
   const handleSignOut = () => {
     setIsDropdownOpen(false);
     const { setAuthTransition } = useUiStore.getState();
     setAuthTransition(true, 'signout');
-    
+
     setTimeout(() => {
       useAuthStore.getState().logout();
       setAuthTransition(false);
     }, 1200);
   };
 
+  const getDashboardHref = () => {
+    if (!user) return '/user';
+    if (user.role === 'ADMIN') return '/admin';
+    if (user.role === 'VENDOR') return '/vendor';
+    return '/user';
+  };
+
   return (
     <header
       className={cn(
-        'fixed left-0 right-0 z-50 transition-all duration-500 px-4 md:px-8',
-        isScrolled ? 'top-4 max-w-6xl mx-auto' : 'top-0 max-w-full'
+        'fixed left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        isScrolled ? 'top-3 px-4 md:px-6' : 'top-0 px-0'
       )}
     >
       <div
         className={cn(
-          'w-full mx-auto transition-all duration-500 rounded-2xl px-4 md:px-6',
-          isScrolled 
-            ? 'glass border border-white/[0.08] shadow-[0_12px_40px_rgba(0,0,0,0.3)] bg-black/40 h-16' 
-            : 'bg-transparent h-20'
+          'max-w-7xl mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+          isScrolled
+            ? 'rounded-2xl border border-white/[0.06] bg-black/60 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.05)_inset]'
+            : 'rounded-none border-b border-white/[0.04] bg-black/20 backdrop-blur-xl'
         )}
       >
-        <div className="flex items-center justify-between h-full">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-indigo-500/20">
+        <div className="flex items-center justify-between h-16 md:h-[68px] px-4 md:px-6">
+          {/* ── Logo ── */}
+          <Link href="/" className="flex items-center gap-2.5 group relative">
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
               <img src="/favicon.png" alt="Arvis X" className="w-full h-full object-contain" />
+              {/* Glow on hover */}
+              <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/20 transition-all duration-500 rounded-xl" />
             </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              Arvis <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">X</span>
+            <span
+              className="text-lg font-bold tracking-tight"
+              style={{ fontFamily: 'Space Grotesk, sans-serif' }}
+            >
+              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent">
+                Arvis
+              </span>
+              {' '}
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                X
+              </span>
             </span>
           </Link>
 
-
-          <nav className="hidden md:flex items-center gap-1">
+          {/* ── Nav Links (Desktop) ── */}
+          <nav className="hidden lg:flex items-center gap-0.5 relative">
             {navLinks.map((link) => {
               const isActive = pathname.startsWith(link.href);
+              const Icon = link.icon;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
+                  onMouseEnter={() => router.prefetch(link.href)}
                   className={cn(
-                    'relative px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+                    'relative px-3.5 py-2 text-[13px] font-medium rounded-xl transition-all duration-300 flex items-center gap-1.5 group/link',
                     isActive
-                      ? 'text-foreground bg-secondary/80'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+                      ? 'text-white'
+                      : 'text-white/45 hover:text-white/80',
                   )}
                 >
-                  <span className="mr-1.5">{link.icon}</span>
+                  <Icon className={cn(
+                    'w-3.5 h-3.5 transition-all duration-300',
+                    isActive ? 'text-indigo-400' : 'text-white/30 group-hover/link:text-white/60'
+                  )} />
                   {link.label}
                   {isActive && (
                     <motion.div
-                      layoutId="nav-active"
-                      className="absolute inset-0 rounded-xl bg-secondary/50 -z-10"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-xl bg-white/[0.06] border border-white/[0.08] -z-10"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
                 </Link>
@@ -104,168 +165,210 @@ export function Header() {
             })}
           </nav>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden md:flex rounded-xl"
+          {/* ── Right Actions ── */}
+          <div className="flex items-center gap-1.5">
+            {/* Search */}
+            <button
               onClick={() => setSearchOpen(!isSearchOpen)}
+              className="hidden md:flex items-center gap-2 h-9 px-3 rounded-xl text-white/40 hover:text-white/70 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.1] transition-all duration-300 text-xs"
             >
-              <Search className="w-4 h-4" />
-            </Button>
+              <Search className="w-3.5 h-3.5" />
+              <span className="font-light">Search</span>
+              <kbd className="hidden lg:inline-flex h-5 px-1.5 rounded bg-white/[0.06] border border-white/[0.08] items-center text-[10px] text-white/30 font-mono ml-3">
+                ⌘K
+              </kbd>
+            </button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-xl"
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-            >
-              {mounted && (
-                <>
-                  <Sun className="w-4 h-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </>
-              )}
-            </Button>
 
+            {/* Auth Section */}
             {isAuthenticated && user ? (
-              <div className="relative">
+              <div className="relative" data-dropdown>
                 <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-secondary/80 transition-all duration-300"
+                  onClick={(e) => { e.stopPropagation(); setIsDropdownOpen(!isDropdownOpen); }}
+                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-white/[0.06] transition-all duration-300 group/avatar"
                 >
-                  <Avatar className="w-8 h-8 border-2 border-border">
+                  <Avatar className="w-8 h-8 border border-white/[0.1] group-hover/avatar:border-indigo-500/30 transition-all duration-300">
                     <AvatarImage src={user.image} />
-                    <AvatarFallback className="text-xs bg-primary/10">
+                    <AvatarFallback className="text-[10px] font-bold bg-gradient-to-br from-indigo-500/20 to-purple-500/10 text-indigo-300">
                       {user.name?.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <ChevronDown className="w-3 h-3 text-muted-foreground hidden md:block" />
+                  <ChevronDown className={cn(
+                    'w-3 h-3 text-white/30 hidden md:block transition-transform duration-300',
+                    isDropdownOpen && 'rotate-180'
+                  )} />
                 </button>
 
                 <AnimatePresence>
                   {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-56 glass-card p-1.5"
-                    >
-                      <div className="px-3 py-2 border-b border-border/50 mb-1">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
-                      </div>
-                      <Link
-                        href={user.role === 'ADMIN' ? '/admin' : user.role === 'VENDOR' ? '/vendor' : '/user'}
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-secondary/80 transition-all"
+                    <>
+                      {/* Backdrop */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-40"
                         onClick={() => setIsDropdownOpen(false)}
+                      />
+                      {/* Dropdown */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 mt-3 w-64 z-50 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden"
                       >
-                        <LayoutDashboard className="w-4 h-4" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/wallet"
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-secondary/80 transition-all"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Wallet className="w-4 h-4" />
-                        Wallet
-                      </Link>
-                      <Link
-                        href="/ai-assistant"
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-secondary/80 transition-all"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        AI Planner
-                      </Link>
-                      <Link
-                        href="/wishlist"
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-secondary/80 transition-all"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Heart className="w-4 h-4" />
-                        Wishlist
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-secondary/80 transition-all"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Settings className="w-4 h-4" />
-                        Settings
-                      </Link>
-                      <button
-                        onClick={handleSignOut}
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg hover:bg-destructive/10 text-destructive w-full transition-all"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Sign out
-                      </button>
-                    </motion.div>
+                        {/* User info */}
+                        <div className="p-4 border-b border-white/[0.06]">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border border-white/[0.1]">
+                              <AvatarImage src={user.image} />
+                              <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-indigo-500/20 to-purple-500/10 text-indigo-300">
+                                {user.name?.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                              <p className="text-[11px] text-white/40 truncate font-light">{user.email}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Links */}
+                        <div className="p-1.5">
+                          {dropdownLinks.map((item) => {
+                            const Icon = item.icon;
+                            const href = item.roleKey ? getDashboardHref() : item.href;
+                            return (
+                              <Link
+                                key={item.label}
+                                href={href}
+                                className="flex items-center gap-3 px-3 py-2.5 text-[13px] text-white/60 rounded-xl hover:bg-white/[0.06] hover:text-white transition-all duration-200 group/item"
+                                onClick={() => setIsDropdownOpen(false)}
+                              >
+                                <Icon className="w-4 h-4 text-white/30 group-hover/item:text-indigo-400 transition-colors" />
+                                {item.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+
+                        {/* Sign out */}
+                        <div className="p-1.5 border-t border-white/[0.06]">
+                          <button
+                            onClick={handleSignOut}
+                            className="flex items-center gap-3 px-3 py-2.5 text-[13px] text-red-400/80 rounded-xl hover:bg-red-500/10 hover:text-red-400 w-full transition-all duration-200 group/sign"
+                          >
+                            <LogOut className="w-4 h-4 text-red-400/40 group-hover/sign:text-red-400 transition-colors" />
+                            Sign out
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-1">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="rounded-xl">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-xl text-white/50 hover:text-white hover:bg-white/[0.06] text-[13px] h-9 px-4 font-medium transition-all duration-300"
+                  >
                     Log in
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="rounded-xl">
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:brightness-110 text-white text-[13px] h-9 px-5 font-semibold border-0 shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all duration-300"
+                  >
                     Sign up
                   </Button>
                 </Link>
               </div>
             )}
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden rounded-xl"
+            {/* Mobile menu toggle */}
+            <button
+              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.06] transition-all duration-300 ml-1"
               onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+              <AnimatePresence mode="wait">
+                {isMobileMenuOpen ? (
+                  <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <X className="w-5 h-5" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <Menu className="w-5 h-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </div>
       </div>
 
+      {/* ── Mobile Menu ── */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border/50 bg-background/95 backdrop-blur-xl md:hidden overflow-hidden"
+            initial={{ opacity: 0, height: 0, y: -10 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className={cn(
+              'lg:hidden overflow-hidden mt-2 mx-4 rounded-2xl border border-white/[0.06] bg-black/80 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
+            )}
           >
-            <nav className="px-4 py-4 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all',
-                    pathname.startsWith(link.href)
-                      ? 'bg-secondary text-foreground font-medium'
-                      : 'text-muted-foreground hover:bg-secondary/50',
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className="text-lg">{link.icon}</span>
-                  {link.label}
-                </Link>
-              ))}
-              <div className="pt-2 border-t border-border/50 mt-2">
+            <nav className="p-3 space-y-0.5">
+              {navLinks.map((link, i) => {
+                const Icon = link.icon;
+                const isActive = pathname.startsWith(link.href);
+                return (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Link
+                      href={link.href}
+                      onMouseEnter={() => router.prefetch(link.href)}
+                      className={cn(
+                        'flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all duration-300',
+                        isActive
+                          ? 'bg-white/[0.06] text-white font-medium border border-white/[0.08]'
+                          : 'text-white/50 hover:text-white hover:bg-white/[0.04]',
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Icon className={cn(
+                        'w-4 h-4',
+                        isActive ? 'text-indigo-400' : 'text-white/30'
+                      )} />
+                      {link.label}
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      )}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+
+              {/* Divider + Search */}
+              <div className="pt-2 mt-2 border-t border-white/[0.06]">
                 <button
                   onClick={() => { setSearchOpen(true); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground w-full rounded-xl hover:bg-secondary/50 transition-all"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-white/50 w-full rounded-xl hover:bg-white/[0.04] hover:text-white transition-all duration-300"
                 >
-                  <Search className="w-4 h-4" />
-                  Search
+                  <Search className="w-4 h-4 text-white/30" />
+                  Search services...
+                  <kbd className="ml-auto h-5 px-1.5 rounded bg-white/[0.06] border border-white/[0.08] flex items-center text-[10px] text-white/30 font-mono">
+                    ⌘K
+                  </kbd>
                 </button>
               </div>
             </nav>

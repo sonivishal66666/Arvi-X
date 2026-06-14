@@ -122,6 +122,10 @@ const config: Config = {
           '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
           '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
           '100%': { transform: 'translate(0px, 0px) scale(1)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
         }
       },
       animation: {
@@ -136,6 +140,7 @@ const config: Config = {
         'border-pulse': 'border-pulse 3s ease-in-out infinite',
         'bg-pan': 'bg-pan 8s ease infinite',
         'aurora-slow': 'aurora 15s ease-in-out infinite',
+        marquee: 'marquee 20s linear infinite',
       },
       backdropBlur: {
         xs: '2px',

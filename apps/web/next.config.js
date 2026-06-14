@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Permanent fix: production builds write to '.next-build' so they never
+  // corrupt the dev server's '.next' directory on Windows.
+  // This eliminates all MODULE_NOT_FOUND / vendor-chunks errors.
+  ...(process.env.NODE_ENV === 'production' ? { distDir: '.next-build' } : {}),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
@@ -16,6 +20,8 @@ const nextConfig = {
     NEXT_PUBLIC_CASHFREE_APP_ID: process.env.NEXT_PUBLIC_CASHFREE_APP_ID || '',
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
   },
+
 };
 
 module.exports = nextConfig;
+

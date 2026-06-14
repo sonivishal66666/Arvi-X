@@ -3,7 +3,10 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, ChevronLeft, ChevronRight, User, Phone, CreditCard, Sparkles, Shield, ArrowRight, Plus, Minus, CheckCircle } from 'lucide-react';
+import {
+Loader2, ChevronLeft, User, Phone, CreditCard, Compass, Shield, ArrowRight,
+  Plus, CheckCircle, Ticket,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +18,8 @@ import toast from 'react-hot-toast';
 
 declare global { interface Window { Cashfree: any } }
 
-const fadeInUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5 } };
+const ease = [0.16, 1, 0.3, 1];
+const fadeInUp = { initial: { opacity: 0, y: 30 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease } };
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -28,7 +32,6 @@ function BookingContent() {
   const [service, setService] = useState<any>(null);
   const [schedule, setSchedule] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [passengers, setPassengers] = useState([{ name: '', age: '', gender: '', seatNumber: '' }]);
   const [contactPhone, setContactPhone] = useState(user?.phone || '');
@@ -127,7 +130,7 @@ function BookingContent() {
       const resp = await bookingApi.create(payload);
       bookingId = resp.data.booking.id;
 
-      if (service?.category === 'BUS' || service?.category === 'FLIGHT' || service?.category === 'TRAIN') {
+      if (service?.category === 'BUS' || service?.category === 'FLIGHT' || service?.category === 'TRAIN' || service?.category === 'HOTEL' || service?.category === 'EVENT') {
         const payResp = await paymentApi.createOrder({ bookingId: bookingId! });
         const payData = payResp.data;
         const sessionId = payData.data?.paymentSessionId;
@@ -161,14 +164,22 @@ function BookingContent() {
   const taxAmount = Math.max(0, totalAmount - discountAmount) * 0.18;
   const finalAmount = Math.max(0, totalAmount - discountAmount) + taxAmount;
 
+  // Compute visual step dynamically
+  const getActiveStep = () => {
+    if (service?.category === 'BUS' && selectedSeats.length === 0) return 2; // seat select
+    if (passengers.some(p => p.name.trim())) return 3; // secure checkout ready
+    return 2; // passenger info
+  };
+  const activeStep = getActiveStep();
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center pt-20 bg-black">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4 border border-white/[0.08]">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
           </div>
-          <p className="text-muted-foreground animate-pulse">Loading booking details...</p>
+          <p className="text-xs text-white/30 uppercase tracking-widest animate-pulse">Initializing Interface...</p>
         </div>
       </div>
     );
@@ -177,67 +188,118 @@ function BookingContent() {
   if (!service) return null;
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="absolute inset-0 hero-gradient pointer-events-none" />
-      <div className="orb w-[600px] h-[600px] bg-primary/5 top-0 -left-48" />
-      <div className="orb w-[400px] h-[400px] bg-purple-500/5 bottom-0 -right-48" />
+    <div className="min-h-screen bg-black text-white overflow-hidden pt-28 pb-16 relative">
+      {/* Background orbs & mesh grid */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-[200px] -left-[200px] w-[600px] h-[600px] rounded-full bg-indigo-600/[0.05] blur-[150px] animate-orb-pulse" />
+        <div className="absolute -bottom-[100px] -right-[200px] w-[500px] h-[500px] rounded-full bg-purple-500/[0.03] blur-[150px] animate-orb-pulse animation-delay-4000" />
+      </div>
+      <div className="absolute inset-0 grid-bg opacity-15 pointer-events-none" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div {...fadeInUp}>
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors group">
+        <motion.div {...fadeInUp} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors group w-fit">
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
           </button>
+
+          {/* Futuristic HUD Checkout Timeline */}
+          <div className="flex-1 max-w-md md:ml-auto">
+            <div className="relative flex items-center justify-between">
+              {/* Timeline connecting line */}
+              <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[1px] bg-white/10 -z-10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-all duration-500"
+                  style={{ width: activeStep === 2 ? '50%' : activeStep === 3 ? '100%' : '0%' }}
+                />
+              </div>
+              
+              {[
+                { num: 1, label: 'Details' },
+                { num: 2, label: service.category === 'BUS' ? 'Seats' : 'Passengers' },
+                { num: 3, label: 'Payment' }
+              ].map((s) => {
+                const isActive = activeStep >= s.num;
+                const isCurrent = activeStep === s.num;
+                return (
+                  <div key={s.num} className="flex flex-col items-center relative">
+                    <motion.div 
+                      animate={isCurrent ? { scale: [1, 1.05, 1], boxShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 10px rgba(99,102,241,0.4)', '0 0 0px rgba(99,102,241,0)'] } : {}}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center border text-xs font-bold transition-all duration-500 ${
+                        isActive 
+                          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-400 text-white' 
+                          : 'bg-black border-white/[0.08] text-white/30'
+                      }`}
+                    >
+                      {s.num}
+                    </motion.div>
+                    <span className={`text-[9px] mt-1.5 tracking-widest uppercase font-semibold transition-colors duration-500 ${
+                      isActive ? 'text-white/70' : 'text-white/20'
+                    }`}>
+                      {s.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            
+            {/* 1. Service details */}
             <motion.div {...fadeInUp}>
-              <div className="glass-card p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-3xl">
+              <div className="relative rounded-2xl p-6 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md overflow-hidden">
+                <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+                <div className="relative z-10 flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-white/[0.08] flex items-center justify-center text-3xl">
                     {service.category === 'BUS' ? '🚌' : service.category === 'TRAIN' ? '🚄' : service.category === 'FLIGHT' ? '✈️' : service.category === 'HOTEL' ? '🏨' : '🎫'}
                   </div>
-                  <div className="flex-1">
-                    <h1 className="text-xl font-bold">{service.title}</h1>
-                    <p className="text-sm text-muted-foreground">{service.vendor?.businessName} &middot; {service.category}</p>
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-bold tracking-tight truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{service.title}</h1>
+                    <p className="text-xs text-white/45 mt-0.5">{service.vendor?.businessName} &middot; {service.category}</p>
                   </div>
-                  <Badge className="text-sm px-4 py-1.5 glass">{service.category}</Badge>
+                  <Badge className="text-[10px] tracking-wider font-bold bg-white/[0.03] text-white/60 border border-white/[0.08] px-3.5 py-1 rounded-lg">{service.category}</Badge>
                 </div>
 
                 {schedule && (
-                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/10">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{new Date(schedule.departureTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(schedule.departureTime)}</p>
+                  <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.01] border border-white/[0.04]">
+                    <div className="text-left">
+                      <p className="text-xl font-bold tracking-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{new Date(schedule.departureTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5 font-medium uppercase">{formatDate(schedule.departureTime)}</p>
                     </div>
                     <div className="flex-1 flex flex-col items-center">
-                      <p className="text-xs text-muted-foreground mb-1">{Math.floor(schedule.duration / 60)}h {schedule.duration % 60}m</p>
-                      <div className="w-full h-px bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <span className="text-xs text-muted-foreground">{schedule.availableSeats} seats left</span>
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <p className="text-[9px] text-white/20 uppercase tracking-widest font-bold mb-1">{Math.floor(schedule.duration / 60)}h {schedule.duration % 60}m</p>
+                      <div className="w-full h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                      </div>
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[9px] text-white/35 font-semibold uppercase tracking-wider">{schedule.availableSeats} seats left</span>
                       </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{new Date(schedule.arrivalTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(schedule.arrivalTime)}</p>
+                    <div className="text-right">
+                      <p className="text-xl font-bold tracking-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{new Date(schedule.arrivalTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5 font-medium uppercase">{formatDate(schedule.arrivalTime)}</p>
                     </div>
                   </div>
                 )}
               </div>
             </motion.div>
 
+            {/* 2. Seat Selection (If BUS) */}
             {service.category === 'BUS' && scheduleId && (
               <motion.div {...fadeInUp}>
-                <div className="glass-card p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-xs">2</span>
-                      Select Seats
+                <div className="relative rounded-2xl p-6 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md overflow-hidden">
+                  <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-base font-bold flex items-center gap-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                      <span className="w-6 h-6 rounded-lg bg-cyan-950/45 text-cyan-300 border border-cyan-800/40 flex items-center justify-center text-xs">2</span>
+                      Select Seating Pods
                     </h2>
                     {selectedSeats.length > 0 && (
-                      <Badge variant="premium" className="px-3">{selectedSeats.length} selected</Badge>
+                      <Badge className="bg-cyan-950/45 text-cyan-300 border border-cyan-800/40 text-[10px] font-bold rounded-lg px-2.5 py-0.5">{selectedSeats.length} selected</Badge>
                     )}
                   </div>
                   <SeatMap serviceId={serviceId!} scheduleId={scheduleId} />
@@ -245,70 +307,75 @@ function BookingContent() {
               </motion.div>
             )}
 
+            {/* 3. Passengers details */}
             <motion.div {...fadeInUp}>
-              <div className="glass-card p-6">
+              <div className="relative rounded-2xl p-6 bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md overflow-hidden">
+                <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-xs">3</span>
+                  <h2 className="text-base font-bold flex items-center gap-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    <span className="w-6 h-6 rounded-lg bg-emerald-950/45 text-emerald-300 border border-emerald-800/40 flex items-center justify-center text-xs">
+                      {service.category === 'BUS' ? '3' : '2'}
+                    </span>
                     Passenger Details
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={handleAddPassenger} className="rounded-xl gap-1 text-xs">
-                    <Plus className="w-3 h-3" /> Add
+                  <Button variant="ghost" size="sm" onClick={handleAddPassenger} className="rounded-lg gap-1.5 text-xs text-white/50 hover:text-white bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.06] px-3 py-1">
+                    <Plus className="w-3.5 h-3.5 text-emerald-400" /> Add Passenger
                   </Button>
                 </div>
 
                 <div className="space-y-4">
-                  <AnimatePresence>
+                  <AnimatePresence initial={false}>
                     {passengers.map((passenger, i) => (
                       <motion.div
                         key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        className="relative p-5 rounded-2xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/10"
+                        initial={{ opacity: 0, height: 0, y: 15 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -15 }}
+                        transition={{ duration: 0.3, ease }}
+                        className="relative p-5 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-indigo-500/10 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-sm font-bold">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-white/[0.08] flex items-center justify-center text-xs font-bold text-indigo-300">
                               {i + 1}
                             </div>
-                            <span className="text-sm font-medium">Passenger {i + 1}</span>
+                            <span className="text-xs font-bold tracking-wider uppercase text-white/60">Passenger {i + 1}</span>
                           </div>
                           {passengers.length > 1 && (
-                            <button onClick={() => handleRemovePassenger(i)} className="text-xs text-destructive hover:underline">Remove</button>
+                            <button onClick={() => handleRemovePassenger(i)} className="text-[11px] text-rose-400 hover:text-rose-300 transition-colors font-medium">Remove</button>
                           )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                           <div className="md:col-span-2">
-                            <label className="text-xs text-muted-foreground mb-1 block">Full Name</label>
+                            <label className="text-[10px] text-white/30 uppercase tracking-widest font-semibold mb-1.5 block">Full Name</label>
                             <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
                               <Input
                                 value={passenger.name}
                                 onChange={(e) => handlePassengerChange(i, 'name', e.target.value)}
                                 placeholder="e.g. John Doe"
-                                className="pl-9 h-11"
+                                className="pl-10 h-11 bg-white/[0.02] border-white/[0.06] rounded-xl text-white placeholder:text-white/20 focus:border-indigo-500/30 focus:ring-indigo-500/20"
                               />
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs text-muted-foreground mb-1 block">Age</label>
+                            <label className="text-[10px] text-white/30 uppercase tracking-widest font-semibold mb-1.5 block">Age</label>
                             <Input
                               type="number"
                               value={passenger.age}
                               onChange={(e) => handlePassengerChange(i, 'age', e.target.value)}
                               placeholder="25"
-                              className="h-11"
+                              className="h-11 bg-white/[0.02] border-white/[0.06] rounded-xl text-white placeholder:text-white/20 focus:border-indigo-500/30 focus:ring-indigo-500/20"
                               min={1}
                               max={120}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-muted-foreground mb-1 block">Gender</label>
+                            <label className="text-[10px] text-white/30 uppercase tracking-widest font-semibold mb-1.5 block">Gender</label>
                             <select
                               value={passenger.gender}
                               onChange={(e) => handlePassengerChange(i, 'gender', e.target.value)}
-                              className="w-full h-11 rounded-xl border border-input bg-background/50 px-3 text-sm"
+                              className="w-full h-11 rounded-xl border border-white/[0.06] bg-black px-3 text-xs text-white/70 focus:border-indigo-500/30 transition-all cursor-pointer"
                             >
                               <option value="">Select</option>
                               <option value="MALE">Male</option>
@@ -322,28 +389,29 @@ function BookingContent() {
                   </AnimatePresence>
                 </div>
 
-                <div className="mt-6 grid md:grid-cols-2 gap-4">
+                {/* Contact HUD inputs */}
+                <div className="mt-6 pt-6 border-t border-white/[0.04] grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5" /> Contact Phone <span className="text-destructive">*</span>
+                    <label className="text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1.5 block flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-indigo-400" /> Contact Phone <span className="text-rose-500">*</span>
                     </label>
                     <Input
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       placeholder="Phone for payment updates"
-                      className="h-11"
+                      className="h-11 bg-white/[0.02] border-white/[0.06] rounded-xl text-white placeholder:text-white/20 focus:border-indigo-500/30 focus:ring-indigo-500/20"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-                      <span className="w-3.5 h-3.5 flex items-center justify-center text-xs">@</span> Email
+                    <label className="text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1.5 block">
+                      @ Email
                     </label>
                     <Input
                       type="email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="Email for e-ticket"
-                      className="h-11"
+                      className="h-11 bg-white/[0.02] border-white/[0.06] rounded-xl text-white placeholder:text-white/20 focus:border-indigo-500/30 focus:ring-indigo-500/20"
                     />
                   </div>
                 </div>
@@ -353,29 +421,46 @@ function BookingContent() {
 
           <div className="lg:col-span-1">
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-28 space-y-4">
-              <div className="glass-card p-6 space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" /> Booking Summary
-                </h3>
+              
+              {/* Futuristic Boarding Pass Board */}
+              <div className="relative rounded-2xl bg-gradient-to-br from-black/85 to-neutral-950 border border-white/[0.04] backdrop-blur-md overflow-hidden p-6 space-y-5">
+                <div className="absolute top-0 left-0 w-[15%] h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+                
+                {/* Boarding pass notches */}
+                <div className="absolute top-[38%] -left-3.5 w-6 h-6 rounded-full bg-black border border-white/[0.04] z-20" />
+                <div className="absolute top-[38%] -right-3.5 w-6 h-6 rounded-full bg-black border border-white/[0.04] z-20" />
+                
+                <div className="flex items-center justify-between pb-1">
+                  <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-wider text-white/80" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    <Ticket className="w-4 h-4 text-cyan-400" /> Biometric Ticket
+                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">AI Verified</span>
+                  </div>
+                </div>
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+                <div className="space-y-4 text-xs font-light">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] relative">
                     <span className="text-2xl">
                       {service.category === 'BUS' ? '🚌' : service.category === 'TRAIN' ? '🚄' : service.category === 'FLIGHT' ? '✈️' : service.category === 'HOTEL' ? '🏨' : '🎫'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{service.title}</p>
-                      <p className="text-xs text-muted-foreground">{service.category}</p>
+                      <p className="font-bold text-white truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{service.title}</p>
+                      <p className="text-[9px] text-white/30 uppercase mt-0.5 tracking-wider font-semibold">{service.category}</p>
                     </div>
                   </div>
 
-                  {/* Coupon entry widget */}
-                  <div className="pt-2 border-t border-white/10 pb-2">
-                    <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Promo Code / Voucher</label>
+                  {/* Boarding Pass Dashed separator */}
+                  <div className="h-[1px] border-t border-dashed border-white/10 pt-2" />
+
+                  {/* Coupon widget */}
+                  <div className="pb-1">
+                    <label className="text-[9px] text-white/35 uppercase tracking-widest font-bold mb-1.5 block">Promo / Voucher Code</label>
                     {appliedCoupon ? (
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
-                        <span className="text-emerald-400 font-semibold">{appliedCoupon.code} Applied</span>
-                        <button onClick={handleRemoveCoupon} className="text-rose-400 font-semibold hover:underline">Remove</button>
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-xs">
+                        <span className="text-emerald-400 font-semibold text-[11px] tracking-wide">{appliedCoupon.code} Applied</span>
+                        <button onClick={handleRemoveCoupon} className="text-rose-400 font-semibold hover:underline text-[11px]">Remove</button>
                       </div>
                     ) : (
                       <div className="flex gap-2">
@@ -383,7 +468,7 @@ function BookingContent() {
                           placeholder="ENTER CODE"
                           value={couponCode}
                           onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                          className="h-9 text-xs glass"
+                          className="h-9 text-xs bg-white/[0.02] border-white/[0.06] rounded-xl text-white placeholder:text-white/20 focus:border-indigo-500/30"
                         />
                         <Button
                           type="button"
@@ -391,7 +476,7 @@ function BookingContent() {
                           size="sm"
                           onClick={handleApplyCoupon}
                           disabled={isValidatingCoupon || !couponCode.trim()}
-                          className="h-9 px-3 rounded-lg text-xs"
+                          className="h-9 px-3 rounded-xl text-xs bg-white/10 hover:bg-white/20 text-white"
                         >
                           {isValidatingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
                         </Button>
@@ -399,70 +484,73 @@ function BookingContent() {
                     )}
                   </div>
 
-                  <div className="border-t border-border/50 pt-2" />
-
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Base fare</span>
-                    <span>{formatCurrency(service.basePrice)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Passengers</span>
-                    <span>{passengers.filter(p => p.name).length || 1}</span>
-                  </div>
-                  {selectedSeats.length > 0 && (
+                  <div className="border-t border-white/[0.04] pt-3 space-y-2.5">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Seats</span>
-                      <span>{selectedSeats.length}</span>
+                      <span className="text-white/40">Base fare</span>
+                      <span className="font-mono">{formatCurrency(service.basePrice)}</span>
                     </div>
-                  )}
-                  {discountAmount > 0 && (
-                    <div className="flex justify-between text-emerald-400 font-medium">
-                      <span>Discount ({appliedCoupon?.code})</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Passengers</span>
+                      <span className="font-mono">{passengers.filter(p => p.name).length || 1}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Taxes (18%)</span>
-                    <span>{formatCurrency(taxAmount)}</span>
+                    {selectedSeats.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-white/40">Seats selected</span>
+                        <span className="font-mono">{selectedSeats.length}</span>
+                      </div>
+                    )}
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-400 font-medium">
+                        <span>Discount ({appliedCoupon?.code})</span>
+                        <span className="font-mono">-{formatCurrency(discountAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Taxes & Fees (18%)</span>
+                      <span className="font-mono">{formatCurrency(taxAmount)}</span>
+                    </div>
                   </div>
 
-                  <div className="border-t border-border/50 pt-3 space-y-1">
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
-                      <span className="premium-gradient-text">{formatCurrency(finalAmount)}</span>
+                  <div className="border-t border-white/[0.04] pt-3.5 space-y-1">
+                    <div className="flex justify-between font-bold text-lg items-baseline">
+                      <span style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Total</span>
+                      <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent font-extrabold text-xl tracking-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                        {formatCurrency(finalAmount)}
+                      </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-right">Incl. all taxes</p>
+                    <p className="text-[8px] text-white/20 text-right uppercase tracking-widest">Biometric ticket payload included</p>
                   </div>
                 </div>
 
                 <Button
-                  className="w-full h-12 rounded-xl text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"
+                  className="w-full h-11 rounded-xl text-xs uppercase tracking-widest font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:brightness-110 shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 border-0"
                   onClick={handleSubmit}
                   disabled={isProcessing || !passengers.some(p => p.name.trim())}
                 >
                   {isProcessing ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : (
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Compass className="w-4 h-4 mr-2" />
                   )}
-                  {isProcessing ? 'Processing...' : `Pay ${formatCurrency(finalAmount)}`}
+                  {isProcessing ? 'Processing Payload...' : `Pay ${formatCurrency(finalAmount)}`}
                 </Button>
 
-                <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                  <Shield className="w-3 h-3" />
-                  Secured by Cashfree
+                <div className="flex items-center gap-2 text-[10px] text-white/25 justify-center mt-3">
+                  <Shield className="w-3.5 h-3.5 text-indigo-400/50" />
+                  Secured Cashfree Network
                 </div>
               </div>
 
-              <div className="glass p-4 rounded-2xl space-y-2 text-xs">
+              {/* Guarantees HUD */}
+              <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/[0.04] space-y-2 text-[11px] font-light text-white/45">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3 h-3 text-emerald-500" /> Free cancellation within 1 hour
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Free cancellations within 1 hour
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3 h-3 text-emerald-500" /> Instant e-ticket via email
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Instant e-ticket dispatch
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3 h-3 text-emerald-500" /> 24/7 customer support
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> 24/7 holographic support
                 </div>
               </div>
             </motion.div>
@@ -476,8 +564,8 @@ function BookingContent() {
 export default function BookingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center pt-20 bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
       </div>
     }>
       <BookingContent />

@@ -288,7 +288,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const booking = await prisma.booking.findFirst({
       where: { id: req.params.id, userId: req.user!.userId },
       include: {
-        service: true,
+        service: { include: { vendor: true } },
         schedule: { include: { route: true } },
         payments: true,
       },

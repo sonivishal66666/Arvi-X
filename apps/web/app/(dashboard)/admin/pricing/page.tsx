@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { X, Loader2, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
+import {
+X, Loader2, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, ToggleLeft,
+  ToggleRight,
+} from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
