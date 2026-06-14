@@ -28,7 +28,13 @@ import ticketRoutes from './routes/ticket.routes';
 import { setupSocketHandlers } from './socket';
 import { setupCronJobs } from './cron';
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: config.DATABASE_URL,
+    },
+  },
+});
 
 const initRedis = () => {
   console.log('📡 Using ioredis-mock (no real Redis required for development)');
