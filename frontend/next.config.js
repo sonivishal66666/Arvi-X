@@ -3,7 +3,7 @@ const nextConfig = {
   // Permanent fix: production builds write to '.next-build' so they never
   // corrupt the dev server's '.next' directory on Windows.
   // This eliminates all MODULE_NOT_FOUND / vendor-chunks errors.
-  ...(process.env.NODE_ENV === 'production' ? { distDir: '.next-build' } : {}),
+  ...(process.env.NODE_ENV === 'production' && !process.env.VERCEL ? { distDir: '.next-build' } : {}),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
