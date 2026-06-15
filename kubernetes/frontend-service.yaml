@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: arvis-frontend-service
+  namespace: arvis-booking
+  labels:
+    app: arvis-frontend
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: arvis-frontend
+  type: ClusterIP

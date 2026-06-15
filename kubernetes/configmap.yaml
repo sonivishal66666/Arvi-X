@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arvis-config
+  namespace: arvis-booking
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  API_URL: "https://api.arvisx.com"
+  FRONTEND_URL: "https://arvisx.com"
+  WS_URL: "wss://api.arvisx.com"
+  REDIS_URL: "redis://arvis-redis-service.arvis-booking.svc.cluster.local:6379"
+  CASHFREE_ENV: "PRODUCTION"

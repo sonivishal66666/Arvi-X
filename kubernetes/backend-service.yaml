@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: arvis-backend-service
+  namespace: arvis-booking
+  labels:
+    app: arvis-backend
+spec:
+  ports:
+    - port: 4000
+      targetPort: 4000
+      protocol: TCP
+      name: http
+  selector:
+    app: arvis-backend
+  type: ClusterIP

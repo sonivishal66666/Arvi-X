@@ -1,0 +1,80 @@
+service: arvis-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 1024
+  timeout: 29 # API Gateway limit is 29s
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    PORT: 4000
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET, 'arvis-x-dev-secret-key-2026'}
+    JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET, 'arvis-x-dev-refresh-secret-key-2026'}
+    REDIS_URL: ${env:REDIS_URL}
+    CASHFREE_APP_ID: ${env:CASHFREE_APP_ID}
+    CASHFREE_SECRET_KEY: ${env:CASHFREE_SECRET_KEY}
+    SMTP_HOST: ${env:SMTP_HOST}
+    SMTP_PORT: ${env:SMTP_PORT}
+    SMTP_USER: ${env:SMTP_USER}
+    SMTP_PASS: ${env:SMTP_PASS}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    ANTHROPIC_API_KEY: ${env:ANTHROPIC_API_KEY}
+  
+  # IAM Role Permissions for AWS Lambda
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+          Resource: "arn:aws:s3:::arvis-x-uploads-${self:provider.stage}/*"
+
+# VPC Configuration (essential for production databases locked down in private subnets)
+# vpc:
+#   securityGroupIds:
+#     - sg-0123456789abcdef0
+#   subnetIds:
+#     - subnet-0123456789abcdef0
+#     - subnet-0123456789abcdef1
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/typescript/**'
+    - '!node_modules/@types/**'
+    - '!src/**'
+    - '!tsconfig.json'
+    - '!README.md'
+    - 'prisma/schema.prisma'
+    - 'node_modules/.prisma/client/**'
+    - 'node_modules/@prisma/client/**'
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi:
+          path: '*'
+          method: '*'
+      - httpApi:
+          path: '/{proxy+}'
+          method: '*'
+
+plugins:
+  - serverless-offline
+  - serverless-prune-plugin
+
+custom:
+  prune:
+    automatic: true
+    number: 3
+  serverless-offline:
+    httpPort: 4000
+    noPrependStageInUrl: true
