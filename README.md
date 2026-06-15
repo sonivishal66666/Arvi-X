@@ -276,6 +276,10 @@ arvis-x/                              ◆ Turborepo Monorepo
 
 ## ☁️ Cloud, Serverless & DevOps
 
+<p align="center">
+  <img src="images/aws-devops-architecture.png" alt="AWS Cloud & DevOps Architecture Diagram" width="800" />
+</p>
+
 The platform features an enterprise-grade cloud-native infrastructure suite, showcasing integration with AWS, Jenkins pipelines, Terraform IaC, and Kubernetes orchestration.
 
 ### ⚡ Serverless API (AWS Lambda)
