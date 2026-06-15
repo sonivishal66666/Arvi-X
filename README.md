@@ -38,6 +38,7 @@
 - [✨ Features](#-features)
 - [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
 - [🏗️ Architecture](#%EF%B8%8F-architecture)
+- [☁️ Cloud, Serverless & DevOps](#-cloud-serverless--devops)
 - [🚀 Quick Start](#-quick-start)
 - [📊 API Reference](#-api-reference)
 - [🗄️ Seed Data](#%EF%B8%8F-seed-data)
@@ -259,8 +260,40 @@ arvis-x/                              ◆ Turborepo Monorepo
 │   └── prisma/                   ─ Schema · Migrations · Seed (420 services)
 │
 │── docker/                           ◆ Docker & Nginx Production Configs
+├── kubernetes/                       ◆ Production Kubernetes Manifests (Pods · Services · Ingress · TLS)
+├── terraform/                        ◆ Infrastructure as Code (VPC · EKS · RDS · Lambda · IAM)
 └── packages/                         ◆ Shared Packages (future)
 ```
+
+<br />
+
+## ☁️ Cloud, Serverless & DevOps
+
+The platform features an enterprise-grade cloud-native infrastructure suite, showcasing integration with AWS, Jenkins pipelines, Terraform IaC, and Kubernetes orchestration.
+
+### ⚡ Serverless API (AWS Lambda)
+To enable elastic scalability and minimize hosting costs:
+- **Express-to-Lambda Wrapper**: Built around `serverless-http` under `backend/src/lambda.ts` to seamlessly route HTTP requests from API Gateway to the Express application router.
+- **Serverless Framework**: Configured via `backend/serverless.yml` for multi-stage deployments (`dev`, `prod`), resource boundaries, IAM permissions (e.g. S3 uploads), and automatic deployment pruning.
+
+### 🏗️ Infrastructure as Code (Terraform)
+Located in `/terraform`, these templates provision the complete AWS ecosystem:
+- **Networking (`vpc.tf`)**: Secure multi-tier VPC featuring 2 Public Subnets (ELB exposure), 2 Private App Subnets (EKS Node Groups & Lambda functions), and 2 Private Database Subnets.
+- **Compute (`lambda.tf` & `eks.tf`)**: Provisions AWS Lambda execution environments and an AWS EKS Cluster with managed node groups.
+- **Database (`rds.tf`)**: provisions an AWS RDS PostgreSQL instance isolated within the database subnets, restricted via security groups to accept connections only from internal VPC resources.
+
+### 🎡 Container Orchestration (Kubernetes)
+Located in `/kubernetes`, the production-ready manifests configure:
+- **Replication & Scaling**: Configures 3-replica deployments for both the Next.js frontend and Express backend, featuring rolling update strategies, CPU/memory limits, and liveness/readiness health probes.
+- **Ingress Controller (`ingress.yaml`)**: Implements path-based routing via Nginx Ingress (`arvisx.com` -> Frontend and `api.arvisx.com` -> Backend) with TLS certificate auto-provisioning via cert-manager.
+
+### 🛠️ Declarative Jenkins CI/CD Pipeline
+The root `Jenkinsfile` defines a production-grade multi-stage pipeline:
+1. **Quality Gate**: Runs linting and Jest test suites in parallel for both workspaces.
+2. **Build & Package**: Triggers Prisma generation, compiles TypeScript, and builds the Next.js frontend app.
+3. **Infrastructure updates**: Runs Terraform to automatically sync cloud resources.
+4. **Registry Push**: Builds multi-stage production Docker images and pushes them to Amazon ECR.
+5. **Rollout**: Deploys the backend API to AWS Lambda (Serverless) and rolling updates the Kubernetes workloads on AWS EKS.
 
 <br />
 
